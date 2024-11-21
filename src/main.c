@@ -333,6 +333,9 @@ static void set_config_font_size(const char *value) {
 	if (value != NULL) {
 		configuration.font.ptsize = SDL_strtol(value, NULL, 10);
 		SDL_Log("configuration.font.ptsize = %s", value);
+	} else {
+		configuration.font.ptsize = -1;
+		SDL_Log("configuration.font.ptsize is unset");
 	}
 }
 
@@ -786,6 +789,11 @@ static void open_terminal_emulator(void) {
 	if (configuration.window.height == -1) {
 		configuration.window.height = displayRect.h;
 		SDL_Log("Setting configuration.window.height = %d", configuration.window.height);
+	}
+
+	/* If font size is not set, make it roughly 80 cols wide */
+	if (configuration.font.ptsize == -1) {
+		configuration.font.ptsize = (int) configuration.window.width/50;
 	}
 
     /* Configure terminal window */

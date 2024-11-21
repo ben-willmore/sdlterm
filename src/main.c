@@ -247,6 +247,9 @@ static void set_config_window_width(const char *value) {
 	if (value != NULL) {
 		configuration.window.width = SDL_strtol(value, NULL, 10);
 		SDL_Log("configuration.window.width = %s", value);
+	} else {
+		configuration.window.width = -1;
+		SDL_Log("configuration.window.width is unspecified");
 	}
 }
 
@@ -254,6 +257,9 @@ static void set_config_window_height(const char *value) {
 	if (value != NULL) {
 		configuration.window.height = SDL_strtol(value, NULL, 10);
 		SDL_Log("configuration.window.height = %s", value);
+	} else {
+		configuration.window.height = -1;
+		SDL_Log("configuration.window.height is unspecified");
 	}
 }
 
@@ -758,6 +764,29 @@ static void open_terminal_emulator(void) {
     if (configuration.logging.enabled) {
         SDL_LogSetAllPriority(configuration.logging.priority);
     }
+
+	// https://forums.libsdl.org/viewtopic.php?p=46413
+	// if fullscreen and width/height not specified, then use values
+	// from current resolution (assume display 0), otherwise use
+	// default of 640x480
+	SDL_Rect displayRect = {0,0,0,0};
+
+	if (configuration.window.flags & SDL_WINDOW_FULLSCREEN) {
+		SDL_GetDisplayBounds(0, &displayRect);
+	} else {
+		displayRect.w = 640;
+		displayRect.h = 480;
+	}
+
+	if (configuration.window.width == -1) {
+		configuration.window.width = displayRect.w;
+		SDL_Log("Setting configuration.window.width = %d", configuration.window.width);
+	}
+
+	if (configuration.window.height == -1) {
+		configuration.window.height = displayRect.h;
+		SDL_Log("Setting configuration.window.height = %d", configuration.window.height);
+	}
 
     /* Configure terminal window */
     terminal.window = SDL_CreateWindow(

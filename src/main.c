@@ -190,6 +190,7 @@ static struct TerminalEmulatorConfiguration {
 
     struct {
         char *path;
+        char *boldpath;
         int   ptsize;
     } font;
 
@@ -315,6 +316,13 @@ static void set_config_font_path(const char *value) {
 	}
 }
 
+static void set_config_font_boldpath(const char *value) {
+	if (value != NULL) {
+		configuration.font.boldpath = SDL_strdup(value);
+		SDL_Log("configuration.font.boldpath = %s", value);
+	}
+}
+
 static void set_config_font_size(const char *value) {
 	if (value != NULL) {
 		configuration.font.ptsize = SDL_strtol(value, NULL, 10);
@@ -383,6 +391,7 @@ static void load_sdlterm_configuration_file(void) {
         set_config_renderer(ini_get_value(ini, "window", "renderer"));
         set_config_timeout(ini_get_value(ini, "window", "timeout"));
         set_config_font_path(ini_get_value(ini, "font", "path"));
+        set_config_font_boldpath(ini_get_value(ini, "font", "boldpath"));
         set_config_font_size(ini_get_value(ini, "font", "ptsize"));
         set_config_logging_enabled(ini_get_value(ini, "logging", "enabled"));
         set_config_logging_priority(ini_get_value(ini, "logging", "priority"));
@@ -398,6 +407,7 @@ static void load_sdlterm_configuration_file(void) {
 
 static void free_sdlterm_configuration(void) {
     SDL_free(configuration.font.path);
+    SDL_free(configuration.font.boldpath);
     SDL_free(configuration.process.cmdline);
     SDL_free(configuration.window.title);
 }
@@ -815,14 +825,19 @@ static void open_terminal_emulator(void) {
         fputs(TTF_GetError(), stderr);
         exit(EXIT_FAILURE);
     }
-    terminal.font.bold = FOX_OpenFont(
-        terminal.renderer, configuration.font.path, configuration.font.ptsize
-    );
+	if (strcmp(configuration.font.boldpath, "")) {
+		terminal.font.bold = FOX_OpenFont(
+			terminal.renderer, configuration.font.boldpath, configuration.font.ptsize);
+	} else {
+		terminal.font.bold = FOX_OpenFont(
+			terminal.renderer, configuration.font.path, configuration.font.ptsize);
+		TTF_SetFontStyle(FOX_SourceFont(terminal.font.bold), TTF_STYLE_BOLD);
+	};
+
     terminal.font.underline = FOX_OpenFont(
         terminal.renderer, configuration.font.path, configuration.font.ptsize
     );
     TTF_SetFontStyle(FOX_SourceFont(terminal.font.regular), TTF_STYLE_NORMAL);
-	TTF_SetFontStyle(FOX_SourceFont(terminal.font.bold), TTF_STYLE_BOLD);
 	TTF_SetFontStyle(FOX_SourceFont(terminal.font.underline), TTF_STYLE_UNDERLINE);
 
     /* Configure terminal dimensions */

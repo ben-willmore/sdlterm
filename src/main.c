@@ -17,7 +17,6 @@
 
 /* Platform-specific includes */
 #if defined(__LINUX__) | __APPLE__
-#  include <util.h>
 #  include <getopt.h>
 #  include <signal.h>
 #  include <sys/fcntl.h>
@@ -32,6 +31,7 @@
 #if defined(__LINUX__)
 #  include <pty.h>
 #elif __APPLE__
+#  include <util.h>
 #  include <sys/ioctl.h>
 #endif
 

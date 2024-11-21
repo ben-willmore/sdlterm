@@ -16,9 +16,9 @@
 #include <iso646.h>
 
 /* Platform-specific includes */
-#if defined(__LINUX__)
+#if defined(__LINUX__) | __APPLE__
+#  include <util.h>
 #  include <getopt.h>
-#  include <pty.h>
 #  include <signal.h>
 #  include <sys/fcntl.h>
 #  include <sys/types.h>
@@ -26,7 +26,13 @@
 #  include <termios.h>
 #  include <unistd.h>
 #else
-#  error "Unsupported build platform - Expected Linux!"
+#  error "Unsupported build platform - Expected Linux or MacOS!"
+#endif
+
+#if defined(__LINUX__)
+#  include <pty.h>
+#elif __APPLE__
+#  include <sys/ioctl.h>
 #endif
 
 /* Local includes */

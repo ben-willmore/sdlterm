@@ -795,6 +795,7 @@ static void open_terminal_emulator(void) {
 
 	/* If font size is not set, make it roughly 80 cols wide */
 	if (configuration.font.ptsize == -1) {
+		// 80 (cols) * (72/96) (pixels->points) / 1.2 (fudge factor) = 50
 		configuration.font.ptsize = (int) configuration.window.width/50;
 	}
 

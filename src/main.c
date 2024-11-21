@@ -759,7 +759,7 @@ static void open_terminal_emulator(void) {
         fputs(TTF_GetError(), stderr);
         exit(EXIT_FAILURE);
     }
-    static int img_flags = IMG_INIT_JPG | IMG_INIT_PNG | IMG_INIT_TIF;
+    static int img_flags = IMG_INIT_JPG | IMG_INIT_PNG;
     if (IMG_Init(img_flags) != img_flags) {
         fputs(IMG_GetError(), stderr);
         exit(EXIT_FAILURE);

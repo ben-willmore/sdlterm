@@ -12,8 +12,8 @@ struct FOX_Page {
 
 static struct FOX_Page* create_page(SDL_Renderer *renderer, int font_width, int font_height) {
     struct FOX_Page *page = NULL;
-    const int texture_width  = 1000;
-    const int texture_height = 1000;
+    const int texture_width  = 2000;
+    const int texture_height = 2000;
     int glyph_capacity = (texture_width / font_width) * (texture_height / font_height);
     size_t size = sizeof(*page) + sizeof(*page->atlas) * glyph_capacity;
     page = SDL_calloc(1, size);

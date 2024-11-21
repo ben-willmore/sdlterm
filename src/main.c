@@ -326,6 +326,8 @@ static void set_config_font_boldpath(const char *value) {
 	if (value != NULL) {
 		configuration.font.boldpath = SDL_strdup(value);
 		SDL_Log("configuration.font.boldpath = %s", value);
+	} else {
+		configuration.font.boldpath = "";
 	}
 }
 

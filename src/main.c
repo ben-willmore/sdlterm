@@ -557,7 +557,8 @@ static void render_terminal_cell(VTermScreenCell *cell, VTermPos position) {
 	vterm_state_convert_color_to_rgb(terminal.state, &cell->bg);
     SDL_Color fgcolor = {cell->fg.rgb.red, cell->fg.rgb.green, cell->fg.rgb.blue, 255};
 	SDL_Color bgcolor = {cell->bg.rgb.red, cell->bg.rgb.green, cell->bg.rgb.blue, 255};
-
+    SDL_Color tmp = {0,0,0,0};
+ 
     if (cell->attrs.bold) {
         font = terminal.font.bold;
     } else if (cell->attrs.underline) {
@@ -565,8 +566,10 @@ static void render_terminal_cell(VTermScreenCell *cell, VTermPos position) {
     }
     
     if (cell->attrs.reverse) {
-		fgcolor.r = ~fgcolor.r; fgcolor.g = ~fgcolor.g; fgcolor.b = ~fgcolor.b;
-		bgcolor.r = ~bgcolor.r; bgcolor.g = ~bgcolor.g; bgcolor.b = ~bgcolor.b;
+        // Interpret 'reverse' to mean fb and bg are swapped, not each color inverted
+        tmp = fgcolor;
+        fgcolor = bgcolor;
+        bgcolor = tmp;
 	}
 
     flood_cell(position, bgcolor);

@@ -152,6 +152,8 @@ static struct TerminalEmulator {
     int y;
     int width;
     int height;
+    int consolewidth;
+    int consoleheight;
     int rows;
     int cols;
 
@@ -174,6 +176,8 @@ static struct TerminalEmulatorConfiguration {
         int   renderer_index;
         int   width;
         int   height;
+        int   consolewidth;
+        int   consoleheight;
         int   timeout;
         Uint32 flags;
     } window;
@@ -260,6 +264,26 @@ static void set_config_window_height(const char *value) {
 	} else {
 		configuration.window.height = -1;
 		SDL_Log("configuration.window.height is unspecified");
+	}
+}
+
+static void set_config_window_consolewidth(const char *value) {
+	if (value != NULL) {
+		configuration.window.consolewidth = SDL_strtol(value, NULL, 10);
+		SDL_Log("configuration.window.consolewidth = %s", value);
+	} else {
+		configuration.window.consolewidth = -1;
+		SDL_Log("configuration.window.consolewidth is unspecified");
+	}
+}
+
+static void set_config_window_consoleheight(const char *value) {
+	if (value != NULL) {
+		configuration.window.consoleheight = SDL_strtol(value, NULL, 10);
+		SDL_Log("configuration.window.consoleheight = %s", value);
+	} else {
+		configuration.window.consoleheight = -1;
+		SDL_Log("configuration.window.consoleheight is unspecified");
 	}
 }
 
@@ -395,6 +419,8 @@ static void load_sdlterm_configuration_file(void) {
         set_config_window_title(ini_get_value(ini, "window", "title"));
         set_config_window_width(ini_get_value(ini, "window", "width"));
         set_config_window_height(ini_get_value(ini, "window", "height"));
+        set_config_window_consolewidth(ini_get_value(ini, "window", "consolewidth"));
+        set_config_window_consoleheight(ini_get_value(ini, "window", "consoleheight"));
         set_config_window_fullscreen(ini_get_value(ini, "window", "fullscreen"));
 		set_config_window_resizable(ini_get_value(ini, "window", "resizable"));
 		set_config_window_borderless(ini_get_value(ini, "window", "borderless"));
@@ -502,25 +528,36 @@ static void parse_command_line_arguments(int argc, char *argv[]) {
  *****************************************************************************/
 
 /**
+ * Origin of console relative to whole window
+ */
+static int x_origin(void) {
+    return (configuration.window.width - configuration.window.consolewidth) / 2;
+}
+
+static int y_origin(void) {
+    return (configuration.window.height - configuration.window.consoleheight) / 2;
+}
+
+/**
  * Maps a window y coordinate (in pixels) to a terminal row
  */
 static int map_to_row(int y) {
-    return y / FOX_GlyphHeight(terminal.font.regular);
+    return (y - y_origin()) / FOX_GlyphHeight(terminal.font.regular);
 }
 
 static int map_to_y(int row) {
-    return row * FOX_GlyphHeight(terminal.font.regular);
+    return y_origin() + row * FOX_GlyphHeight(terminal.font.regular);
 }
 
 /**
  * Maps a window x coordinate (in pixels) to a terminal column
  */
 static int map_to_col(int x) {
-    return x / FOX_GlyphWidth(terminal.font.regular);
+    return (x - x_origin()) / FOX_GlyphWidth(terminal.font.regular);
 }
 
 static int map_to_x(int col) {
-    return col * FOX_GlyphWidth(terminal.font.regular);
+    return x_origin() + col * FOX_GlyphWidth(terminal.font.regular);
 }
 
 /**
@@ -796,6 +833,17 @@ static void open_terminal_emulator(void) {
 		SDL_Log("Setting configuration.window.height = %d", configuration.window.height);
 	}
 
+    /* If console width and height are unset, set them to window dimensions */
+	if (configuration.window.consolewidth == -1) {
+		configuration.window.consolewidth = configuration.window.width;
+		SDL_Log("Setting configuration.window.consolewidth = %d", configuration.window.consolewidth);
+	}
+
+	if (configuration.window.consoleheight == -1) {
+		configuration.window.consoleheight = configuration.window.height;
+		SDL_Log("Setting configuration.window.consoleheight = %d", configuration.window.height);
+	}
+
 	/* If font size is not set, make it roughly 80 cols wide */
 	if (configuration.font.ptsize == -1) {
 		// 80 (cols) * (72/96) (pixels->points) / 1.2 (fudge factor) = 50
@@ -884,10 +932,10 @@ static void open_terminal_emulator(void) {
 	TTF_SetFontStyle(FOX_SourceFont(terminal.font.underline), TTF_STYLE_UNDERLINE);
 
     /* Configure terminal dimensions */
-    terminal.width = configuration.window.width;
-    terminal.height = configuration.window.height;
-    terminal.rows = map_to_row(terminal.height);
-    terminal.cols = map_to_col(terminal.width);
+    terminal.width = configuration.window.consolewidth;
+    terminal.height = configuration.window.consoleheight;
+    terminal.rows = map_to_row(y_origin() + terminal.height);
+    terminal.cols = map_to_col(x_origin() + terminal.width);
     terminal.fullscreen = configuration.window.flags & SDL_WINDOW_FULLSCREEN;
     terminal.cursor.visible = SDL_TRUE;
 
